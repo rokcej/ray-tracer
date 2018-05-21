@@ -1,14 +1,9 @@
 # Ray tracer
 Installing Make and GCC:  
 ```bash
-$ sudo apt-get install build-essential
+sudo apt-get install build-essential
 ```  
-Installing Mesa:  
+Installing SDL:  
 ```bash
-$ sudo apt-get install mesa-common-dev
+sudo apt-get install libsdl2-dev
 ```
-Installing GLUT:  
-```bash
-sudo apt-get install freeglut3-dev
-```  
-

@@ -1,12 +1,15 @@
+# Flags
 GXX=g++
-EXECUTABLE=main
 CPPFLAGS=
 LDFLAGS=
-LDLIBS=-lGL -lglut
+LDLIBS=-lSDL2
 
+# Parameters
+EXECUTABLE=main
 SOURCEDIR=src
 BUILDDIR=build
 
+# Files
 EXEC=$(BUILDDIR)/$(EXECUTABLE)
 SRCS=$(wildcard $(SOURCEDIR)/*.cpp)
 OBJS=$(patsubst $(SOURCEDIR)/%.cpp,$(BUILDDIR)/%.o,$(SRCS))
