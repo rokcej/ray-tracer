@@ -3,11 +3,8 @@
 
 class RayTracer {
 private:
-	double x;
-	double y;
-	double z;
 public:
-	RayTracer(double x, double y, double z);
+	RayTracer();
 };
 
 #endif

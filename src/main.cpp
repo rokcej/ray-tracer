@@ -5,16 +5,19 @@
 #include "ray_tracer.h"
 
 int main(int argc, char **argv) {
-    Window *window = new Window("Ray tracer", 640, 480);
-    if (!window->init())
-        return 1;
+	RayTracer *rt = new RayTracer();
+	Window *window = new Window("Ray tracer", 640, 480, rt);
 
-    while (window->isRunning()) {
-        window->handleEvents();
-        window->render();
-    }
-
-    window->close();
-    delete window;
-    return 0;
+	if (window->init()) {
+		while (window->isRunning()) {
+			window->handleEvents();
+			window->render();
+		}
+		
+		window->close();
+	}
+	
+	delete window;
+	delete rt;
+	return 0;
 }

@@ -10,10 +10,11 @@ private:
 	int width;
 	int height;
 	int running;
+	RayTracer *rt;
 	SDL_Window *window;
 	SDL_Renderer *renderer;
 public:
-	Window(const char *title, int width, int height);
+	Window(const char *title, int width, int height, RayTracer *rt);
 
 	int init();
 	int isRunning();
