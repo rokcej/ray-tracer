@@ -31,8 +31,18 @@ $(BUILDDIR)/%.o: $(SOURCEDIR)/%.cpp
 	@echo "Compiling $^"
 	@$(CXX) $(CPPFLAGS) -c $< -o $@
 
+# Run
+.PHONY: run
+run:
+	@echo "Running..."
+	@$(BUILDDIR)/$(EXECUTABLE)
+
 # Clean
 .PHONY: clean
 clean:
 	@echo "Cleaning..."
 	@rm -f $(OBJS) $(EXEC)
+
+# Clean, compile, run
+.PHONY: dev
+dev: clean all run

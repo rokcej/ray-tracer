@@ -2,15 +2,16 @@
 #define _ray_tracer_h
 
 #include "vect.h"
-#include "object.h"
+#include "entity.h"
 #include "camera.h"
 #include "ray.h"
 #include <math.h>
 #include <vector>
+#include <stdio.h>
 
 #define PI 3.14159265358979323846
-#define STEP_SIZE 0.5
-#define MAX_STEPS 200
+#define STEP_SIZE 0.1
+#define MAX_STEPS 500
 #define MAX_DEPTH 10
 #define TOL 1e-8
 #define MAX_ITER 5
@@ -28,8 +29,9 @@ class RayTracer {
 private:
 	Camera cam;
 	std::vector<Object*> objs;
+	std::vector<Light*> lights;
 public:
-	RayTracer(std::vector<Object*>& objs);
+	RayTracer(std::vector<Object*>& objs, std::vector<Light*>& lights);
 	Pixel render(int wRaw, int hRaw, int xRaw, int yRaw);
 	Pixel trace(Ray& ray, int depth);
 	double newton(Object* obj, Ray& ray, double t, double tol, int max_iter);

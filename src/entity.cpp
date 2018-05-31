@@ -1,4 +1,9 @@
-#include "object.h"
+#include "entity.h"
+
+Light::Light(double x, double y, double z, double brightness) {
+	this->pos = Vect(x, y, z);
+	this->brightness = brightness;
+}
 
 Object::Object(double x, double y, double z) {
 	this->pos = Vect(x, y, z);

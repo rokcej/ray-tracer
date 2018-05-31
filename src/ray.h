@@ -10,6 +10,8 @@ public:
 	Vect dir;
 
 	Ray(Vect origin, Vect dir);
+
+	Vect operator*(const double& t);
 };
 
 #endif

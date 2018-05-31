@@ -1,9 +1,9 @@
 #include "ray_tracer.h"
-#include <stdio.h>
 
-RayTracer::RayTracer(std::vector<Object*>& objs) {
+RayTracer::RayTracer(std::vector<Object*>& objs, std::vector<Light*>& lights) {
 	this->cam = Camera();
 	this->objs = objs;
+	this->lights = lights;
 }
 
 Pixel RayTracer::render(int width, int height, int col, int row) {
@@ -29,11 +29,11 @@ Pixel RayTracer::trace(Ray& ray, int depth) {
 	double t = 0.0;
 	for (int step = 1; step < MAX_STEPS; ++step) {
 		t += STEP_SIZE;
+		Vect tPoint = ray * t;
 		// If multiple collisions, get the closest one
 		int iObj = -1;
 		for (int i = 0; i < n; ++i) {
-			Vect point = ray.origin + ray.dir * t;
-			int sign = objs.at(i)->f(point) >= 0;
+			int sign = objs.at(i)->f(tPoint) >= 0;
 			if (sign != signs[i]) {
 				// Calculate collision with object
 				double t0 = t - 0.5 * STEP_SIZE;
@@ -46,24 +46,50 @@ Pixel RayTracer::trace(Ray& ray, int depth) {
 		}
 		// Nearest collision found
 		if (iObj != -1) {
-			double a = 1 - t / 10; // Fake shading
-			return (Pixel) { a, a, a };
+			tPoint = ray * t;
+			// Illumination
+			double illumination = 0.4;
+			for (int j = 0; j < lights.size(); ++j) {
+				Vect shadowRayDir = lights.at(j)->pos - tPoint;
+				double sMax = shadowRayDir.length();
+				shadowRayDir.normalize();
+				Ray shadowRay = Ray(tPoint, shadowRayDir);
+				// Trace shadow ray
+				double s = 0.0;
+				int shadow = 0;
+				while (s < sMax) {
+					s += STEP_SIZE;
+					if (s > sMax) // Last point should be on the light itself
+						s = sMax;
+					Vect sPoint = shadowRay * s;
+					for (int i = 0; i < n; ++i) {
+						int sign = objs.at(i)->f(sPoint) >= 0;
+						if (sign != signs[i]) {
+							shadow = 1;
+							break;
+						}
+					}
+					if (shadow)
+						break;
+				}
+				if (!shadow)
+					illumination += lights.at(j)->brightness;
+
+			}
+			return (Pixel) { illumination, illumination, illumination };
 		}
 	}
 	return (Pixel) { 0.0, 0.0, 0.0 };
 }
 
-
 double RayTracer::newton(Object* obj, Ray& ray, double t, double tol, int max_iter) {
 	double t0 = t;
 	for (int i = 0; i < max_iter; ++i) {
-		Vect point = ray.origin + ray.dir * t0;
+		Vect point = ray * t0;
 		t = t0 - obj->f(point) / (ray.dir.x * obj->dfx(point) + ray.dir.y * obj->dfy(point) + ray.dir.z * obj->dfz(point));
-		//printf("t: %lf, iter: %d\n", t, i);
 		if (ABS(t - t0) < tol)
 			break;
 		t0 = t;
 	}
-	//printf("t: %lf\n", t);
 	return t;
 }

@@ -1,8 +1,17 @@
-#ifndef _object_h
-#define _object_h
+#ifndef _entity_h
+#define _entity_h
 
 #include "vect.h"
 #include <math.h>
+
+class Light {
+private:
+public:
+	double brightness;
+	Vect pos;
+
+	Light(double x, double y, double z, double luminosity);
+};
 
 class Object {
 private:
