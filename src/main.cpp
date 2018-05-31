@@ -6,7 +6,7 @@
 
 int main(int argc, char **argv) {
 	RayTracer *rt = new RayTracer();
-	Window *window = new Window("Ray tracer", 640, 480, rt);
+	Window *window = new Window("Ray tracer", 1280, 720, rt);
 
 	if (window->init()) {
 		while (window->isRunning()) {

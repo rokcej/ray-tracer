@@ -3,6 +3,8 @@
 
 #include <SDL2/SDL.h>
 #include "ray_tracer.h"
+#include <stdio.h>
+#include <math.h>
 
 class Window {
 private:

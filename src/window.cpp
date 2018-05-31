@@ -1,5 +1,4 @@
 #include "window.h"
-#include <stdio.h>
 
 Window::Window(const char *title, int width, int height, RayTracer *rt) {
 	this->title = title;
@@ -20,7 +19,7 @@ int Window::init() {
 		SDL_WINDOWPOS_CENTERED,
 		this->width,
 		this->height,
-		SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
+		SDL_WINDOW_SHOWN //| SDL_WINDOW_RESIZABLE
 	);
 	if (this->window == NULL) {
 		fprintf(stderr, "Failed to create SDL Window: %s\n", SDL_GetError());
@@ -46,7 +45,8 @@ void Window::render() {
 
 	for (int y = 0; y < this->height; y++) {
 		for (int x = 0; x < this->width; x++) {
-			SDL_SetRenderDrawColor(renderer, 255*x/this->width, 255.0*y/this->height, (255*x/this->width + 255*y/this->height) / 2.0, 255);
+			Pixel p = rt->render(width, height, x, y);
+			SDL_SetRenderDrawColor(renderer, round(p.r*255.0), round(p.g*255.0), round(p.b*255.0), 255);
 			SDL_RenderDrawPoint(renderer, x, y);
 		}
 	}
@@ -61,10 +61,10 @@ void Window::handleEvents() {
 		case SDL_QUIT:
 			this->running = 0;
 			break;
-		case SDL_WINDOWEVENT:
+		/*case SDL_WINDOWEVENT:
 			if (e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
 				SDL_GetWindowSize(window, &(this->width), &(this->height));
-			break;
+			break;*/
 		default:
 			break;
 		}

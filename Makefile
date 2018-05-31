@@ -1,8 +1,8 @@
 # Flags
 GXX=g++
-CPPFLAGS=
+CPPFLAGS=-std=c++11
 LDFLAGS=
-LDLIBS=-lSDL2
+LDLIBS=-lSDL2 -lm
 
 # Parameters
 EXECUTABLE=main
