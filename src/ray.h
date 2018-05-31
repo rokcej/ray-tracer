@@ -12,5 +12,4 @@ public:
 	Ray(Vect origin, Vect dir);
 };
 
-
 #endif

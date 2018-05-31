@@ -7,6 +7,7 @@
 int main(int argc, char **argv) {
 	std::vector<Object*> objs;
 	objs.push_back(new Sphere(0.0, 0.0, 10.0, 4.0));
+	objs.push_back(new Sphere(-2.0, 0.0, 7.0, 2.0));
 
 	RayTracer *rt = new RayTracer(objs);
 	Window *window = new Window("Ray tracer", 360, 360, rt);

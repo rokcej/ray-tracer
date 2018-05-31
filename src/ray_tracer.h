@@ -9,12 +9,14 @@
 #include <vector>
 
 #define PI 3.14159265358979323846
-#define STEP_SIZE 0.05
-#define MAX_STEPS 1000
+#define STEP_SIZE 0.5
+#define MAX_STEPS 200
 #define MAX_DEPTH 10
 #define TOL 1e-8
 #define MAX_ITER 5
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
+#define ABS(x) ((x) < 0 ? -(x) : (x))
 
 typedef struct {
 	double r;
