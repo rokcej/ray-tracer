@@ -30,7 +30,7 @@ Pixel RayTracer::trace(Ray& ray, int depth) {
 			int sign = objs.at(i)->f(ray.origin + ray.dir * (step * STEP_SIZE)) >= 0; // TODO: Change to addition if slow
 			if (sign != signs[i]) {
 				// Calculate collision
-				double t = newton(objs.at(i), ray, step * STEP_SIZE - 0.5, TOL, MAX_ITER);
+				double t = newton(objs.at(i), ray, (step -0.5 ) * STEP_SIZE, TOL, MAX_ITER);
 				double a = 1 - t / 10;
 				printf("a: %lf, t: %lf, step: %d\n", a, t, step);
 				return (Pixel) { a, a, a };
@@ -45,8 +45,8 @@ double RayTracer::newton(Object* obj, Ray& ray, double t, double tol, int max_it
 	double t0 = t;
 	for (int i = 0; i < max_iter; ++i) {
 		Vect v = ray.origin + ray.dir * t0;
-		t = t0 - obj->f(v) / (ray.origin.x * obj->dfx(v) + ray.origin.y * obj->dfy(v) + ray.origin.z * obj->dfz(v));
-		printf("t: %lf, iter: %d\n", t, i);
+		t = t0 - obj->f(v) / (ray.dir.x * obj->dfx(v) + ray.dir.y * obj->dfy(v) + ray.dir.z * obj->dfz(v));
+		//printf("t: %lf, iter: %d\n", t, i);
 		if (t - t0 < tol)
 			break;
 		t0 = t;

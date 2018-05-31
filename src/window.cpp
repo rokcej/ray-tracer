@@ -6,7 +6,6 @@ Window::Window(const char *title, int width, int height, RayTracer *rt) {
 	this->height = height;
 	this->rt = rt;
 	this->running = 1;
-	rendering = 1; // REMOVE
 }
 
 int Window::init() {
@@ -42,20 +41,17 @@ int Window::isRunning() {
 }
 
 void Window::render() {
-	if (rendering) { // REMOVE
-		rendering = 0;
-		SDL_RenderClear(renderer);
+	SDL_RenderClear(renderer);
 
-		for (int y = 0; y < this->height; y++) {
-			for (int x = 0; x < this->width; x++) {
-				Pixel p = rt->render(width, height, x, y);
-				SDL_SetRenderDrawColor(renderer, round(p.r*255.0), round(p.g*255.0), round(p.b*255.0), 255);
-				SDL_RenderDrawPoint(renderer, x, y);
-			}
+	for (int y = 0; y < this->height; y++) {
+		for (int x = 0; x < this->width; x++) {
+			Pixel p = rt->render(width, height, x, y);
+			SDL_SetRenderDrawColor(renderer, round(p.r*255.0), round(p.g*255.0), round(p.b*255.0), 255);
+			SDL_RenderDrawPoint(renderer, x, y);
 		}
-
-		SDL_RenderPresent(renderer);
 	}
+
+	SDL_RenderPresent(renderer);
 }
 
 void Window::handleEvents() {

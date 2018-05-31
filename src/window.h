@@ -12,7 +12,6 @@ private:
 	int width;
 	int height;
 	int running;
-	int rendering;
 	RayTracer *rt;
 	SDL_Window *window;
 	SDL_Renderer *renderer;
