@@ -21,11 +21,15 @@ public:
 	Vect& operator-=(const Vect& v);
 	Vect& operator*=(const double& d);
 	Vect& operator*=(const Vect& v);
+	Vect& operator/=(const double& d);
+	Vect& operator/=(const Vect& v);
 
 	Vect operator+(const Vect& v);
 	Vect operator-(const Vect& v);
 	Vect operator*(const double& d);
 	Vect operator*(const Vect& v);
+	Vect operator/(const double& d);
+	Vect operator/(const Vect& v);
 };
 
 #endif

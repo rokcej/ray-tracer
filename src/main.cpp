@@ -5,8 +5,11 @@
 #include "ray_tracer.h"
 
 int main(int argc, char **argv) {
-	RayTracer *rt = new RayTracer();
-	Window *window = new Window("Ray tracer", 1280, 720, rt);
+	std::vector<Object*> objs;
+	objs.push_back(new Sphere(0.0, 0.0, 10.0, 4.0));
+
+	RayTracer *rt = new RayTracer(objs);
+	Window *window = new Window("Ray tracer", 360, 360, rt);
 
 	if (window->init()) {
 		while (window->isRunning()) {
@@ -17,6 +20,8 @@ int main(int argc, char **argv) {
 		window->close();
 	}
 	
+	for (int i = 0; i < objs.size(); ++i)
+		delete objs.at(i);
 	delete window;
 	delete rt;
 	return 0;

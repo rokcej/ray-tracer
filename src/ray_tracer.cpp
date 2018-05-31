@@ -1,10 +1,11 @@
 #include "ray_tracer.h"
+#include <stdio.h>
 
-RayTracer::RayTracer() {
+RayTracer::RayTracer(std::vector<Object*>& objs) {
 	this->cam = Camera();
+	this->objs = objs;
 }
 
-#include <stdio.h>
 Pixel RayTracer::render(int width, int height, int col, int row) {
 	double span = 2.0 * tan(PI * cam.fov / 360.0);
 	double ratio = span / MAX(width, height);
@@ -15,9 +16,41 @@ Pixel RayTracer::render(int width, int height, int col, int row) {
 	rayDir.normalize();
 
 	Ray ray = Ray(cam.pos, rayDir);
-	return trace(ray);
+	return trace(ray, 0);
 }
 
-Pixel RayTracer::trace(Ray ray) {
-	return (Pixel) { 1.0, 1.0, 0.0 };
+Pixel RayTracer::trace(Ray& ray, int depth) {
+	int n = objs.size();
+	int signs[n];
+	for (int i = 0; i < n; ++i)
+		signs[i] = objs.at(i)->f(ray.origin) >= 0; // TODO: If == 0
+
+	for (int step = 1; step < MAX_STEPS; ++step) {
+		for (int i = 0; i < n; ++i) {
+			int sign = objs.at(i)->f(ray.origin + ray.dir * (step * STEP_SIZE)) >= 0; // TODO: Change to addition if slow
+			if (sign != signs[i]) {
+				// Calculate collision
+				double t = newton(objs.at(i), ray, step * STEP_SIZE - 0.5, TOL, MAX_ITER);
+				double a = 1 - t / 10;
+				printf("a: %lf, t: %lf, step: %d\n", a, t, step);
+				return (Pixel) { a, a, a };
+			}
+		}
+	}
+	return (Pixel) { 0.0, 0.0, 0.0 };
+}
+
+
+double RayTracer::newton(Object* obj, Ray& ray, double t, double tol, int max_iter) {
+	double t0 = t;
+	for (int i = 0; i < max_iter; ++i) {
+		Vect v = ray.origin + ray.dir * t0;
+		t = t0 - obj->f(v) / (ray.origin.x * obj->dfx(v) + ray.origin.y * obj->dfy(v) + ray.origin.z * obj->dfz(v));
+		printf("t: %lf, iter: %d\n", t, i);
+		if (t - t0 < tol)
+			break;
+		t0 = t;
+	}
+	//printf("t: %lf\n", t);
+	return t;
 }
