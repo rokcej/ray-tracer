@@ -11,11 +11,13 @@ public:
 	double z;
 
 	Vect();
+	Vect(double d);
 	Vect(double x, double y, double z);
 
 	Vect copy();
 	Vect& normalize();
 	double length();
+	double dot(Vect& v);
 
 	Vect& operator+=(const Vect& v);
 	Vect& operator-=(const Vect& v);

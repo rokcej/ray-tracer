@@ -10,11 +10,11 @@
 #include <stdio.h>
 
 #define PI 3.14159265358979323846
-#define STEP_SIZE 0.1
-#define MAX_STEPS 500
+#define STEP_SIZE 0.2
+#define MAX_STEPS 200
 #define MAX_DEPTH 10
 #define TOL 1e-8
-#define MAX_ITER 5
+#define MAX_ITER 10
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 #define ABS(x) ((x) < 0 ? -(x) : (x))
@@ -32,8 +32,10 @@ private:
 	std::vector<Light*> lights;
 public:
 	RayTracer(std::vector<Object*>& objs, std::vector<Light*>& lights);
-	Pixel render(int wRaw, int hRaw, int xRaw, int yRaw);
-	Pixel trace(Ray& ray, int depth);
+	void *getSigns(Vect& point, int *signs);
+	Vect render(int width, int height, int col, int row);
+	Vect trace(Ray& ray, int depth);
+	Vect traceShadow(Vect origin, int *signs);
 	double newton(Object* obj, Ray& ray, double t, double tol, int max_iter);
 };
 

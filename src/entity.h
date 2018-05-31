@@ -7,10 +7,11 @@
 class Light {
 private:
 public:
-	double brightness;
+	Vect brightness;
 	Vect pos;
 
-	Light(double x, double y, double z, double luminosity);
+	Light(double x, double y, double z, double brightness);
+	Light(double x, double y, double z, double r, double g, double b);
 };
 
 class Object {
@@ -20,10 +21,11 @@ protected:
 public:
 	Object(double x, double y, double z);
 
-	virtual double f(Vect pt) {}
-	virtual double dfx(Vect pt) {}
-	virtual double dfy(Vect p) {}
-	virtual double dfz(Vect pt) {}
+	virtual double f(Vect& pt) {}
+	virtual double dfx(Vect& pt) {}
+	virtual double dfy(Vect& pt) {}
+	virtual double dfz(Vect& pt) {}
+	Vect grad(Vect& pt);
 };
 
 class Sphere : public Object {
@@ -33,10 +35,10 @@ protected:
 public:
 	Sphere(double x, double y, double z, double r);
 
-	double f(Vect pt);
-	double dfx(Vect pt);
-	double dfy(Vect p);
-	double dfz(Vect pt);
+	double f(Vect& pt);
+	double dfx(Vect& pt);
+	double dfy(Vect& pt);
+	double dfz(Vect& pt);
 };
 
 #endif

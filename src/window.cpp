@@ -45,8 +45,8 @@ void Window::render() {
 
 	for (int y = 0; y < this->height; y++) {
 		for (int x = 0; x < this->width; x++) {
-			Pixel p = rt->render(width, height, x, y);
-			SDL_SetRenderDrawColor(renderer, round(p.r*255.0), round(p.g*255.0), round(p.b*255.0), 255);
+			Vect color = rt->render(width, height, x, y);
+			SDL_SetRenderDrawColor(renderer, round(color.x*255.0), round(color.y*255.0), round(color.z*255.0), 255);
 			SDL_RenderDrawPoint(renderer, x, y);
 		}
 	}
