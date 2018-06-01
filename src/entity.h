@@ -43,4 +43,18 @@ public:
 	double dfz(Vect& pt);
 };
 
+class Plane : public Object {
+private:
+protected:
+	Vect normal;
+public:
+	Plane(Material mat, double x, double y, double z);
+	Plane(Material mat, double x, double y, double z, double a, double b, double c);
+
+	double f(Vect& pt);
+	double dfx(Vect& pt);
+	double dfy(Vect& pt);
+	double dfz(Vect& pt);
+};
+
 #endif

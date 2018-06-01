@@ -1,43 +1,52 @@
 #include "ray_tracer.h"
 
-RayTracer::RayTracer(std::vector<Object*>& objs, std::vector<Light*>& lights) {
-	this->cam = Camera();
+RayTracer::RayTracer(int width, int height, int fov, int samples, std::vector<Object*>& objs, std::vector<Light*>& lights) {
+	this->cam = Camera(width, height, fov);
+	this->samples = samples;
 	this->objs = objs;
 	this->lights = lights;
+	this->pixels = new Vect*[height];
+	for (int i = 0; i < height; i++)
+		this->pixels[i] = new Vect[width];
+}
+RayTracer::~RayTracer() {
+	for (int i = 0; i < cam.height; i++)
+		delete[] this->pixels[i];
+	delete[] this->pixels;
 }
 
-Vect RayTracer::render(int width, int height, int col, int row) {
-	// TODO: Optimize
+Vect **RayTracer::render() {
 	double span = 2.0 * tan(PI * cam.fov / 360.0);
-	double ratio = span / MAX(width, height);
-
-	int samples = 2;
+	double ratio = span / MAX(cam.width, cam.height);
 	double sampleSize = 1.0 / samples;
 
-	double x0 = ratio * ((col + 0.5 * sampleSize) - width/2.0);
-	double y0 = ratio * (-(row + 0.5 * sampleSize) + height/2.0);
+	for (int row = 0; row < cam.height; ++row) { // Screen height resolution
+		for (int col = 0; col < cam.width; ++col) { // Screen width resolution
+			Vect color = Vect(0.0, 0.0, 0.0);
+			for (int dy = 0; dy < samples; ++dy) { // Pixel height samples
+				for (int dx = 0; dx < samples; ++dx) { // Pixel width samples
+					double x = ratio * ((col + (0.5+dx) * sampleSize) - cam.width*0.5);
+					double y = ratio * (-(row + (0.5+dy) * sampleSize) + cam.height*0.5);
 
-	Vect color = Vect(0.0, 0.0, 0.0);
-	for (int dy = 0; dy < samples; ++dy) {
-		for (int dx = 0; dx < samples; ++dx) {
-			double x = x0 + dx * sampleSize * ratio;
-			double y = y0 + dy * sampleSize * ratio;
+					Vect rayDir = cam.vx*x + cam.vy*y + cam.dir;
+					rayDir.normalize();
 
-			Vect rayDir = cam.vx*x + cam.vy*y + cam.dir;
-			rayDir.normalize();
-
-			Ray ray = Ray(cam.pos, rayDir);
-			Vect sampleColor = trace(ray, 0, NULL);
-			color += sampleColor;
+					Ray ray = Ray(cam.pos, rayDir);
+					Vect sampleColor = trace(ray, 0, NULL);
+					color += sampleColor;
+				}
+			}
+			pixels[row][col] = color / (samples * samples); // Store average color
 		}
 	}
-	return color / (samples * samples);
+	return pixels;
 }
 
 Vect RayTracer::trace(Ray& ray, int depth, int *signsPrev) {
+	Vect color = Vect(0.0, 0.0, 0.0); // Default color
 	// Base case
-	if (depth > MAX_DEPTH)
-		return Vect(0.0, 0.0, 0.0);
+	if (depth > MAX_RAY_DEPTH)
+		return color;
 
 	// Get function signs at the origin unless already given
 	int signs[objs.size()];
@@ -49,8 +58,8 @@ Vect RayTracer::trace(Ray& ray, int depth, int *signsPrev) {
 	}
 
 	double t = 0.0;
-	for (int step = 1; step < MAX_STEPS; ++step) {
-		t += STEP_SIZE;
+	for (int step = 1; step < MAX_RAY_STEPS; ++step) {
+		t += RAY_STEP_SIZE;
 		Vect point = ray * t;
 		// If multiple collisions, get the closest one
 		int iObj = -1;
@@ -58,8 +67,8 @@ Vect RayTracer::trace(Ray& ray, int depth, int *signsPrev) {
 			int sign = objs.at(i)->f(point) >= 0;
 			if (sign != signs[i]) {
 				// Calculate collision with object
-				double t0 = t - 0.5 * STEP_SIZE;
-				double tn = newton(objs.at(i), ray, t0, TOL, MAX_ITER);
+				double t0 = t - 0.5 * RAY_STEP_SIZE;
+				double tn = newton(objs.at(i), ray, t0, RAY_TOL, MAX_ITER);
 				if (iObj == -1 || tn < t) {
 					iObj = i;
 					t = tn;
@@ -70,27 +79,37 @@ Vect RayTracer::trace(Ray& ray, int depth, int *signsPrev) {
 		if (iObj != -1) {
 			point = ray * t;
 			Vect normal = objs.at(iObj)->grad(point).normalize();
+			double reflection = objs.at(iObj)->mat.reflection;
+			double transparency = objs.at(iObj)->mat.transparency;
+
 			// Diffuse
 			Vect light = traceShadow(point, normal, signs);
-			Vect diffuse = light * objs.at(iObj)->mat.color;
-			// Reflection
-			Vect reflectionDir = ray.dir - normal * ray.dir.dot(normal) * 2.0;
-			//ray.dir.normalize();
-			Ray reflectionRay = Ray(point, reflectionDir);
-			Vect reflection = trace(reflectionRay, depth+1, signs);
-			//Transparency
-			Ray transparencyRay = Ray(point, ray.dir);
-			signs[iObj] = 1 - signs[iObj];
-			Vect transparency = trace(transparencyRay, depth+1, signs);
-			signs[iObj] = 1 - signs[iObj];
+			Vect diffuseColor = light * objs.at(iObj)->mat.color;
 
-			double refl = objs.at(iObj)->mat.reflection;
-			double trans = objs.at(iObj)->mat.transparency;
-			Vect color = (diffuse * (1-refl) + reflection * refl) * (1 - trans) + transparency * trans;
+			color = diffuseColor;
+
+			// Reflection
+			if (reflection > 0.0) {
+				Vect reflectionDir = ray.dir - normal * ray.dir.dot(normal) * 2.0; // Already normalized
+				Ray reflectionRay = Ray(point, reflectionDir);
+				Vect reflectionColor = trace(reflectionRay, depth+1, signs);
+
+				color = color * (1-reflection) + reflectionColor * reflection;
+			}
+			//Transparency
+			if (transparency > 0.0) {
+				Ray transparencyRay = Ray(point, ray.dir);
+				signs[iObj] = 1 - signs[iObj];
+				Vect transparencyColor = trace(transparencyRay, depth+1, signs);
+				signs[iObj] = 1 - signs[iObj];
+				
+				color = color * (1-transparency) + transparencyColor * transparency;
+			}
+
 			return color;
 		}
 	}
-	return Vect(0.0, 0.0, 0.0);
+	return color;
 }
 
 // Traces shadow rays from origin to light sources
@@ -110,7 +129,7 @@ Vect RayTracer::traceShadow(Vect& origin, Vect& normal, int *signsPrev) {
 		double t = 0.0;
 		double intensity = 1.0;
 		while (t < tMax) {
-			t += STEP_SIZE;
+			t += RAY_STEP_SIZE;
 			if (t > tMax) // Last point should be on the light itself
 				t = tMax;
 			Vect point = ray * t;
@@ -129,7 +148,7 @@ Vect RayTracer::traceShadow(Vect& origin, Vect& normal, int *signsPrev) {
 			//printf("%f, %f, %f\n", cosAngle, normal.length(), ray.dir.length());
 			if (cosAngle < 0.0)
 				cosAngle = 0.0;
-			double minLum = 0.0; // TODO: Make this a material attribute
+			double minLum = 0.00; // TODO: Make this a material attribute
 			Vect currentIllum = lights.at(j)->brightness * (cosAngle * (1-minLum) + minLum);
 			illum.addBalanced(currentIllum); // TODO: Fix
 		}
