@@ -9,12 +9,15 @@
 #include <vector>
 #include <stdio.h>
 
+// Constants
 #define PI 3.14159265358979323846
+// Parameters
 #define STEP_SIZE 0.2
-#define MAX_STEPS 200
+#define MAX_STEPS 100
 #define MAX_DEPTH 10
 #define TOL 1e-8
 #define MAX_ITER 10
+// Macros
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 #define ABS(x) ((x) < 0 ? -(x) : (x))

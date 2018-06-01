@@ -7,16 +7,31 @@ RayTracer::RayTracer(std::vector<Object*>& objs, std::vector<Light*>& lights) {
 }
 
 Vect RayTracer::render(int width, int height, int col, int row) {
+	// TODO: Optimize
 	double span = 2.0 * tan(PI * cam.fov / 360.0);
 	double ratio = span / MAX(width, height);
-	double x = ratio * ((col + 0.5) - width/2.0);
-	double y = ratio * (-(row + 0.5) + height/2.0);
 
-	Vect rayDir = cam.vx*x + cam.vy*y + cam.dir;
-	rayDir.normalize();
+	int samples = 4;
+	double sampleSize = 1.0 / samples;
 
-	Ray ray = Ray(cam.pos, rayDir);
-	return trace(ray, 0);
+	double x0 = ratio * ((col + 0.5 * sampleSize) - width/2.0);
+	double y0 = ratio * (-(row + 0.5 * sampleSize) + height/2.0);
+
+	Vect color = Vect(0.0, 0.0, 0.0);
+	for (int dy = 0; dy < samples; ++dy) {
+		for (int dx = 0; dx < samples; ++dx) {
+			double x = x0 + dx * sampleSize * ratio;
+			double y = y0 + dy * sampleSize * ratio;
+
+			Vect rayDir = cam.vx*x + cam.vy*y + cam.dir;
+			rayDir.normalize();
+
+			Ray ray = Ray(cam.pos, rayDir);
+			Vect sampleColor = trace(ray, 0);
+			color += sampleColor;
+		}
+	}
+	return color / (samples * samples);
 }
 
 Vect RayTracer::trace(Ray& ray, int depth) {

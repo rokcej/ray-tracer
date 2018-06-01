@@ -6,8 +6,8 @@
 
 int main(int argc, char **argv) {
 	std::vector<Object*> objs;
-	objs.push_back(new Sphere(0.0, 0.0, 12.0, 4.0));
-	objs.push_back(new Sphere(-2.0, 3.8, 9.0, 1.0));
+	objs.push_back(new Sphere(0.0, -1.0, 11.0, 4.0));
+	objs.push_back(new Sphere(-2.0, 3, 8.0, 1.0));
 
 	std::vector<Light*> lights;
 	lights.push_back(new Light(-4.0, 10.0, 5.0, 0.2));
@@ -17,9 +17,13 @@ int main(int argc, char **argv) {
 	Window *window = new Window("Ray tracer", 360, 360, rt);
 
 	if (window->init()) {
+		int rendered = 0; // Render only 1 frame, remove
 		while (window->isRunning()) {
 			window->handleEvents();
-			window->render();
+			if (!rendered) {
+				rendered = 1;
+				window->render();
+			}
 		}
 		
 		window->close();
