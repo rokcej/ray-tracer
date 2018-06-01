@@ -6,14 +6,15 @@ Light::Light(double x, double y, double z, double r, double g, double b) {
 	this->brightness = Vect(r, g, b);
 }
 
-Object::Object(double x, double y, double z) {
+Object::Object(Material mat, double x, double y, double z) {
 	this->pos = Vect(x, y, z);
+	this->mat = mat;
 }
 Vect Object::grad(Vect& pt) {
 	return Vect(dfx(pt), dfy(pt), dfz(pt));
 }
 
-Sphere::Sphere(double x, double y, double z, double r) : Object(x, y, z) {
+Sphere::Sphere(Material mat, double x, double y, double z, double r) : Object(mat, x, y, z) {
 	this->r = r;
 }
 double Sphere::f(Vect& pt) {

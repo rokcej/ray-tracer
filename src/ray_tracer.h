@@ -35,10 +35,10 @@ private:
 	std::vector<Light*> lights;
 public:
 	RayTracer(std::vector<Object*>& objs, std::vector<Light*>& lights);
-	void *getSigns(Vect& point, int *signs);
+	void *getSigns(Vect& point, int *signsPrev);
 	Vect render(int width, int height, int col, int row);
-	Vect trace(Ray& ray, int depth);
-	Vect traceShadow(Vect origin, int *signs);
+	Vect trace(Ray& ray, int depth, int *signsPrev);
+	Vect traceShadow(Vect& origin, Vect& normal, int *signs);
 	double newton(Object* obj, Ray& ray, double t, double tol, int max_iter);
 };
 

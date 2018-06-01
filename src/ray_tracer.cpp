@@ -11,7 +11,7 @@ Vect RayTracer::render(int width, int height, int col, int row) {
 	double span = 2.0 * tan(PI * cam.fov / 360.0);
 	double ratio = span / MAX(width, height);
 
-	int samples = 4;
+	int samples = 2;
 	double sampleSize = 1.0 / samples;
 
 	double x0 = ratio * ((col + 0.5 * sampleSize) - width/2.0);
@@ -27,18 +27,26 @@ Vect RayTracer::render(int width, int height, int col, int row) {
 			rayDir.normalize();
 
 			Ray ray = Ray(cam.pos, rayDir);
-			Vect sampleColor = trace(ray, 0);
+			Vect sampleColor = trace(ray, 0, NULL);
 			color += sampleColor;
 		}
 	}
 	return color / (samples * samples);
 }
 
-Vect RayTracer::trace(Ray& ray, int depth) {
-	// Get function signs at the origin
+Vect RayTracer::trace(Ray& ray, int depth, int *signsPrev) {
+	// Base case
+	if (depth > MAX_DEPTH)
+		return Vect(0.0, 0.0, 0.0);
+
+	// Get function signs at the origin unless already given
 	int signs[objs.size()];
-	for (int i = 0; i < objs.size(); ++i)
-		signs[i] = objs.at(i)->f(ray.origin) >= 0; // TODO: If == 0
+	for (int i = 0; i < objs.size(); ++i) {
+		if (signsPrev == NULL)
+			signs[i] = objs.at(i)->f(ray.origin) >= 0; // TODO: If == 0
+		else
+			signs[i] = signsPrev[i];
+	}
 
 	double t = 0.0;
 	for (int step = 1; step < MAX_STEPS; ++step) {
@@ -61,8 +69,24 @@ Vect RayTracer::trace(Ray& ray, int depth) {
 		// Nearest collision found
 		if (iObj != -1) {
 			point = ray * t;
-			Vect color = Vect(1.0, 1.0, 1.0);
-			color *= traceShadow(point, signs);
+			Vect normal = objs.at(iObj)->grad(point).normalize();
+			// Diffuse
+			Vect light = traceShadow(point, normal, signs);
+			Vect diffuse = light * objs.at(iObj)->mat.color;
+			// Reflection
+			Vect reflectionDir = ray.dir - normal * ray.dir.dot(normal) * 2.0;
+			//ray.dir.normalize();
+			Ray reflectionRay = Ray(point, reflectionDir);
+			Vect reflection = trace(reflectionRay, depth+1, signs);
+			//Transparency
+			Ray transparencyRay = Ray(point, ray.dir);
+			signs[iObj] = 1 - signs[iObj];
+			Vect transparency = trace(transparencyRay, depth+1, signs);
+			signs[iObj] = 1 - signs[iObj];
+
+			double refl = objs.at(iObj)->mat.reflection;
+			double trans = objs.at(iObj)->mat.transparency;
+			Vect color = (diffuse * (1-refl) + reflection * refl) * (1 - trans) + transparency * trans;
 			return color;
 		}
 	}
@@ -70,8 +94,13 @@ Vect RayTracer::trace(Ray& ray, int depth) {
 }
 
 // Traces shadow rays from origin to light sources
-Vect RayTracer::traceShadow(Vect origin, int *signs) {
-	Vect illum = Vect(0.5);
+Vect RayTracer::traceShadow(Vect& origin, Vect& normal, int *signsPrev) {
+	// Copy previous signs
+	int signs[objs.size()];
+	for (int i = 0; i < objs.size(); ++i)
+			signs[i] = signsPrev[i];
+
+	Vect illum = Vect(0.1);
 	for (int j = 0; j < lights.size(); ++j) {
 		Vect rayDir = lights.at(j)->pos - origin;
 		double tMax = rayDir.length();
@@ -79,7 +108,7 @@ Vect RayTracer::traceShadow(Vect origin, int *signs) {
 		Ray ray = Ray(origin, rayDir);
 		// Trace shadow ray
 		double t = 0.0;
-		int shadow = 0;
+		double intensity = 1.0;
 		while (t < tMax) {
 			t += STEP_SIZE;
 			if (t > tMax) // Last point should be on the light itself
@@ -88,15 +117,22 @@ Vect RayTracer::traceShadow(Vect origin, int *signs) {
 			for (int i = 0; i < objs.size(); ++i) {
 				int sign = objs.at(i)->f(point) >= 0;
 				if (sign != signs[i]) {
-					shadow = 1;
+					intensity *= objs.at(i)->mat.transparency;
 					break;
 				}
 			}
-			if (shadow)
+			if (intensity == 0)
 				break;
 		}
-		if (!shadow)
-			illum += lights.at(j)->brightness; // TODO: Fix
+		if (intensity > 0.0) {
+			double cosAngle = normal.dot(ray.dir);
+			//printf("%f, %f, %f\n", cosAngle, normal.length(), ray.dir.length());
+			if (cosAngle < 0.0)
+				cosAngle = 0.0;
+			double minLum = 0.0; // TODO: Make this a material attribute
+			Vect currentIllum = lights.at(j)->brightness * (cosAngle * (1-minLum) + minLum);
+			illum.addBalanced(currentIllum); // TODO: Fix
+		}
 	}
 	return illum;
 }

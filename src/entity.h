@@ -2,6 +2,7 @@
 #define _entity_h
 
 #include "vect.h"
+#include "material.h"
 #include <math.h>
 
 class Light {
@@ -19,7 +20,8 @@ private:
 protected:
 	Vect pos;
 public:
-	Object(double x, double y, double z);
+	Material mat;
+	Object(Material mat, double x, double y, double z);
 
 	virtual double f(Vect& pt) {}
 	virtual double dfx(Vect& pt) {}
@@ -33,7 +35,7 @@ private:
 protected:
 	double r;
 public:
-	Sphere(double x, double y, double z, double r);
+	Sphere(Material mat, double x, double y, double z, double r);
 
 	double f(Vect& pt);
 	double dfx(Vect& pt);

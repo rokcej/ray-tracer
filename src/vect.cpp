@@ -29,6 +29,12 @@ double Vect::length() {
 double Vect::dot(Vect& v) {
 	return x * v.x + y * v.y + z * v.z;
 }
+// Add the vector so that each component doesn't exceed 1
+void Vect::addBalanced(Vect& v) {
+	x += 0.8*(1.0 - x) * v.x;
+	y += 0.8*(1.0 - y) * v.y;
+	z += 0.8*(1.0 - z) * v.z;
+}
 
 // Overload operators
 Vect& Vect::operator+=(const Vect& v) { x += v.x; y += v.y; z += v.z; return *this; }

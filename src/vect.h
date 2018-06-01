@@ -18,6 +18,7 @@ public:
 	Vect& normalize();
 	double length();
 	double dot(Vect& v);
+	void addBalanced(Vect& v);
 
 	Vect& operator+=(const Vect& v);
 	Vect& operator-=(const Vect& v);
