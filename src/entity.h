@@ -23,10 +23,10 @@ public:
 	Material mat;
 	Object(Material mat, double x, double y, double z);
 
-	virtual double f(Vect& pt) {}
-	virtual double dfx(Vect& pt) {}
-	virtual double dfy(Vect& pt) {}
-	virtual double dfz(Vect& pt) {}
+	virtual double f(Vect& pt) = 0; // { return 0.0; }
+	virtual double dfx(Vect& pt) = 0;
+	virtual double dfy(Vect& pt) = 0;
+	virtual double dfz(Vect& pt) = 0;
 	Vect grad(Vect& pt);
 };
 

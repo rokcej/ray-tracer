@@ -15,6 +15,8 @@ private:
 	RayTracer *rt;
 	SDL_Window *window;
 	SDL_Renderer *renderer;
+
+	Vect **pixels = NULL; // For debugging, only render one frame, remove this
 public:
 	Window(const char *title, int width, int height, RayTracer *rt);
 

@@ -1,13 +1,15 @@
 #include <SDL2/SDL.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "window.h"
 #include "ray_tracer.h"
+#include "bitmap.h"
 
-#define WIDTH 480
-#define HEIGHT 480
+#define WIDTH 1280
+#define HEIGHT 1024
 #define FOV 60
-#define SAMPLES 1
+#define SAMPLES 2
 
 int main(int argc, char **argv) {
 	// Materials
@@ -34,23 +36,34 @@ int main(int argc, char **argv) {
 	lights.push_back(new Light(-4.0, 10.0, 5.0, 1.0));
 	lights.push_back(new Light(6.0, 2.0, 5.0, 1.0));
 
+	// Renderer
 	RayTracer *rt = new RayTracer(WIDTH, HEIGHT, FOV, SAMPLES, objs, lights);
-	Window *window = new Window("Ray tracer", WIDTH, HEIGHT, rt);
 
-	if (window->init()) {
-		while (window->isRunning()) {
-			window->handleEvents();
-			window->render();
+	// If the argument `bmp` is passed, save image into a .bmp file,
+	// otherwise render it directly to the screen
+	if (argc > 1 && strcmp(argv[1], "bmp") == 0) {
+		// Save image to a file
+		Vect **image = rt->render();
+		bmpSaveImage(image, WIDTH, HEIGHT, "render.bmp");
+	} else { 
+		// Render image to the screen
+		Window *window = new Window("Ray tracer", WIDTH, HEIGHT, rt);
+
+		if (window->init()) {
+			while (window->isRunning()) {
+				window->handleEvents();
+				window->render();
+			}
+			window->close();
 		}
 		
-		window->close();
+		for (int i = 0; i < objs.size(); ++i)
+			delete objs.at(i);
+		for (int i = 0; i < lights.size(); ++i)
+			delete lights.at(i);
+		delete window;
 	}
 	
-	for (int i = 0; i < objs.size(); ++i)
-		delete objs.at(i);
-	for (int i = 0; i < lights.size(); ++i)
-		delete lights.at(i);
-	delete window;
 	delete rt;
 	return 0;
 }

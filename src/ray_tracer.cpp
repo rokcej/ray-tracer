@@ -1,5 +1,6 @@
 #include "ray_tracer.h"
 
+// Constructor
 RayTracer::RayTracer(int width, int height, int fov, int samples, std::vector<Object*>& objs, std::vector<Light*>& lights) {
 	this->cam = Camera(width, height, fov);
 	this->samples = samples;
@@ -9,53 +10,68 @@ RayTracer::RayTracer(int width, int height, int fov, int samples, std::vector<Ob
 	for (int i = 0; i < height; i++)
 		this->pixels[i] = new Vect[width];
 }
+// Destructor
 RayTracer::~RayTracer() {
 	for (int i = 0; i < cam.height; i++)
 		delete[] this->pixels[i];
 	delete[] this->pixels;
 }
 
+// Renders an image from objects and lights
 Vect **RayTracer::render() {
-	if (rendered)
-		return pixels;
-
+	// Calculate constants
 	double span = 2.0 * tan(PI * cam.fov / 360.0);
 	double ratio = span / MAX(cam.width, cam.height);
 	double sampleSize = 1.0 / samples;
+	// Create array of threads
+	std::thread threads[cam.height];
+	// Start timer
+	time_t start = time(NULL);
 
-	clock_t start = clock(); // Start timer
-
+	// Create thread for each row
 	for (int row = 0; row < cam.height; ++row) { // Screen height resolution
+		threads[row] = std::thread(renderRow, this, row, ratio, sampleSize);
+	}
+	// Wait for each thread to finish
+	for (int row = 0; row < cam.height; ++row) {
+		// Print progress
 		printf("\rRendering: %d\%%", 100*row/cam.height); // Print progress
 		fflush(stdout);
-		for (int col = 0; col < cam.width; ++col) { // Screen width resolution
-			Vect color = Vect(0.0, 0.0, 0.0);
-			for (int dy = 0; dy < samples; ++dy) { // Pixel height samples
-				for (int dx = 0; dx < samples; ++dx) { // Pixel width samples
-					double x = ratio * ((col + (0.5+dx) * sampleSize) - cam.width*0.5);
-					double y = ratio * (-(row + (0.5+dy) * sampleSize) + cam.height*0.5);
-					// Get ray through the selected sample of the selected pixel
-					Vect rayDir = cam.vx*x + cam.vy*y + cam.dir;
-					rayDir.normalize();
-					Ray ray = Ray(cam.pos, rayDir);
-					// Trace ray
-					Vect sampleColor = trace(ray, 0, 0, NULL);
-					color += sampleColor;
-				}
-			}
-			pixels[row][col] = color / (samples * samples); // Store average color from all samples
-		}
+		// Join thread
+		threads[row].join();
 	}
+
+	// Print results
 	printf("\rRendering: 100%%\n");
-
-	double render_time = (double)(clock() - start) / CLOCKS_PER_SEC; // Stop timer
-	printf("Frame render time: %lfs\n", render_time);
-
-	rendered = 1;
+	printf("Frame render time: %lds\n", time(NULL) - start);
 
 	return pixels;
 }
 
+// Renders a row of pixels. The function is static because a non-static function can't be passed
+// to a thread. To bypass this, it takes the object as an argument
+void RayTracer::renderRow(RayTracer *rt, int row, double ratio, double sampleSize) {
+	for (int col = 0; col < rt->cam.width; ++col) { // Screen width resolution
+		Vect color = Vect(0.0, 0.0, 0.0);
+		for (int dy = 0; dy < rt->samples; ++dy) { // Pixel height samples
+			for (int dx = 0; dx < rt->samples; ++dx) { // Pixel width samples
+				double x = ratio * ((col + (0.5+dx) * sampleSize) - rt->cam.width*0.5);
+				double y = ratio * (-(row + (0.5+dy) * sampleSize) + rt->cam.height*0.5);
+				// Get ray through the selected sample of the selected pixel
+				Vect rayDir = rt->cam.vx*x + rt->cam.vy*y + rt->cam.dir;
+				rayDir.normalize();
+				Ray ray = Ray(rt->cam.pos, rayDir);
+				// Trace ray
+				Vect sampleColor = rt->trace(ray, 0, 0, NULL);
+				color += sampleColor;
+			}
+		}
+		rt->pixels[row][col] = color / (rt->samples * rt->samples); // Store average color from all samples
+	}
+}
+
+// Traces ray through space and finds collisions with objects, then recursively
+// sends out a reflection ray, a refraction ray and a shadow ray.
 Vect RayTracer::trace(Ray& ray, int depth, int currentSteps, int *signsPrev) {
 	Vect color = Vect(0.0, 0.0, 0.0); // Default color
 	// Base case
@@ -158,7 +174,7 @@ Vect RayTracer::trace(Ray& ray, int depth, int currentSteps, int *signsPrev) {
 	return color;
 }
 
-// Traces shadow rays from origin to light sources
+// Traces shadow rays from origin point to all light sources and returns the total illumination
 Vect RayTracer::traceShadow(Vect& origin, Vect& normal, int *signsPrev, int signPrev) {
 	// Copy previous signs
 	int signs[objs.size()];
@@ -201,6 +217,7 @@ Vect RayTracer::traceShadow(Vect& origin, Vect& normal, int *signsPrev, int sign
 	return illum;
 }
 
+// Finds the intersetion of the ray with the object using Newton's method
 double RayTracer::newton(Object* obj, Ray& ray, double t, double tol, int max_iter) {
 	double t0 = t;
 	for (int i = 0; i < max_iter; ++i) {

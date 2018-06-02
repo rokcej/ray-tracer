@@ -43,7 +43,9 @@ int Window::isRunning() {
 void Window::render() {
 	SDL_RenderClear(renderer);
 
-	Vect **pixels = rt->render();
+	if (pixels == NULL)
+		pixels = rt->render();
+		
 	for (int y = 0; y < this->height; y++) {
 		for (int x = 0; x < this->width; x++) {
 			Vect color = pixels[y][x];
