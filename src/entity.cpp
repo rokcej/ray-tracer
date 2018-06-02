@@ -41,7 +41,7 @@ Ellipsoid::Ellipsoid(Material mat, double x, double y, double z, double a, doubl
 	this->c = c;
 }
 double Ellipsoid::f(Vect& pt) {
-	return pow(pt.x-pos.x, 2)/(a*a) + pow(pt.y-pos.y, 2)/(b*b) + pow(pt.z-pos.z, 2)/(c*c) - 1;
+	return pow((pt.x-pos.x) / a, 2) + pow((pt.y-pos.y) / b, 2) + pow((pt.z-pos.z) / c, 2) - 1;
 }
 double Ellipsoid::dfx(Vect& pt) {
 	return 2.0 / (a*a) * (pt.x-pos.x);
@@ -86,4 +86,23 @@ double Torus::dfy(Vect& pt) {
 }
 double Torus::dfz(Vect& pt) {
 	return 2.0 * (pt.z - pos.z);
+}
+
+// EllipticParaboloid
+EllipticParaboloid::EllipticParaboloid(Material mat, double x, double y, double z, double a) : EllipticParaboloid(mat, x, y, z, a, a) {}
+EllipticParaboloid::EllipticParaboloid(Material mat, double x, double y, double z, double a, double b) : Object(mat, x, y, z) {
+	this->a = a;
+	this->b = b;
+}
+double EllipticParaboloid::f(Vect& pt) {
+	return pow((pt.x-pos.x) / a, 2) + pow((pt.y-pos.y) / b, 2) - (pt.z-pos.z);
+}
+double EllipticParaboloid::dfx(Vect& pt) {
+	return 2.0 / (a*a) * (pt.x-pos.x);
+}
+double EllipticParaboloid::dfy(Vect& pt) {
+	return 2.0 / (b*b) * (pt.z-pos.z);
+}
+double EllipticParaboloid::dfz(Vect& pt) {
+	return -1.0;
 }

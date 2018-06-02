@@ -86,4 +86,19 @@ public:
 	double dfz(Vect& pt);
 };
 
+class EllipticParaboloid : public Object {
+private:
+protected:
+	double a;
+	double b;
+public:
+	EllipticParaboloid(Material mat, double x, double y, double z, double a);
+	EllipticParaboloid(Material mat, double x, double y, double z, double a, double b);
+
+	double f(Vect& pt);
+	double dfx(Vect& pt);
+	double dfy(Vect& pt);
+	double dfz(Vect& pt);
+};
+
 #endif

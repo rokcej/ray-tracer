@@ -16,11 +16,11 @@ Make sure to run the following commands in the main directory of the repository.
 	make
 	```
 * Running the program:
-	* Rendering the image directly to the screen:
+	* "Real-time" rendering on the screen:
 		```bash
 		build/main
 		```
-	* Rendering the image into a `.bmp` file:
+	* Rendering a `render.bmp` file:
 		```bash
 		build/main bmp
 		```

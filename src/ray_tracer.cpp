@@ -232,3 +232,10 @@ double RayTracer::newton(Object* obj, Ray& ray, double t, double tol, int max_it
 	}
 	return t;
 }
+
+// Sets camera position
+void RayTracer::setCamPos(double x, double y, double z) {
+	cam.pos.x = x;
+	cam.pos.y = y;
+	cam.pos.z = z;
+}
