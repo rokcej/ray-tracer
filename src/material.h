@@ -9,9 +9,11 @@ public:
     Vect color;
     double reflection;
     double transparency;
+    double refractiveIndex;
 
     Material();
     Material(double r, double g, double b, double reflection, double transparency);
+    Material(double r, double g, double b, double reflection, double transparency, double refractiveIndex);
 };
 
 #endif

@@ -30,18 +30,6 @@ public:
 	Vect grad(Vect& pt);
 };
 
-class Sphere : public Object {
-private:
-protected:
-	double r;
-public:
-	Sphere(Material mat, double x, double y, double z, double r);
-
-	double f(Vect& pt);
-	double dfx(Vect& pt);
-	double dfy(Vect& pt);
-	double dfz(Vect& pt);
-};
 
 class Plane : public Object {
 private:
@@ -50,6 +38,47 @@ protected:
 public:
 	Plane(Material mat, double x, double y, double z);
 	Plane(Material mat, double x, double y, double z, double a, double b, double c);
+
+	double f(Vect& pt);
+	double dfx(Vect& pt);
+	double dfy(Vect& pt);
+	double dfz(Vect& pt);
+};
+
+class Ellipsoid : public Object {
+private:
+protected:
+	double a;
+	double b;
+	double c;
+public:
+	Ellipsoid(Material mat, double x, double y, double z, double a, double b, double c);
+
+	double f(Vect& pt);
+	double dfx(Vect& pt);
+	double dfy(Vect& pt);
+	double dfz(Vect& pt);
+};
+class Sphere : public Ellipsoid {
+private:
+protected:
+	//double r;
+public:
+	Sphere(Material mat, double x, double y, double z, double r);
+
+	//double f(Vect& pt);
+	//double dfx(Vect& pt);
+	//double dfy(Vect& pt);
+	//double dfz(Vect& pt);
+};
+
+class Torus : public Object {
+private:
+protected:
+	double R; // Center radius
+	double r; // Tube radius
+public:
+	Torus(Material mat, double x, double y, double z, double R, double r);
 
 	double f(Vect& pt);
 	double dfx(Vect& pt);
