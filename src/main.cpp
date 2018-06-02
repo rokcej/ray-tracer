@@ -6,10 +6,10 @@
 #include "ray_tracer.h"
 #include "bitmap.h"
 
-#define WIDTH 1280
-#define HEIGHT 1024
+#define WIDTH 640
+#define HEIGHT 480
 #define FOV 60
-#define SAMPLES 2
+#define SAMPLES 1
 
 int main(int argc, char **argv) {
 	// Materials
@@ -57,13 +57,14 @@ int main(int argc, char **argv) {
 			window->close();
 		}
 		
-		for (int i = 0; i < objs.size(); ++i)
-			delete objs.at(i);
-		for (int i = 0; i < lights.size(); ++i)
-			delete lights.at(i);
 		delete window;
 	}
 	
+	// Free memory
+	for (int i = 0; i < objs.size(); ++i)
+		delete objs.at(i);
+	for (int i = 0; i < lights.size(); ++i)
+		delete lights.at(i);
 	delete rt;
 	return 0;
 }
