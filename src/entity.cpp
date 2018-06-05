@@ -87,6 +87,20 @@ double Torus::dfy(Vect& pt) {
 double Torus::dfz(Vect& pt) {
 	return 2.0 * (pt.z - pos.z);
 }
+// Torus aligned with y axis
+TorusY::TorusY(Material mat, double x, double y, double z, double R, double r) : Torus(mat, x, y, z, R, r) {}
+double TorusY::f(Vect& pt) {
+	return pow(sqrt(pow(pt.x-pos.x, 2) + pow(pt.z-pos.z, 2)) - R, 2) + pow(pt.y-pos.y, 2) - r*r;
+}
+double TorusY::dfx(Vect& pt) {
+	return 2.0 * (pt.x - pos.x) * (1.0 - R / sqrt(pow(pt.x-pos.x, 2) + pow(pt.z-pos.z, 2)));
+}
+double TorusY::dfy(Vect& pt) {
+	return 2.0 * (pt.y - pos.y);
+}
+double TorusY::dfz(Vect& pt) {
+	return 2.0 * (pt.z - pos.z) * (1.0 - R / sqrt(pow(pt.x-pos.x, 2) + pow(pt.z-pos.z, 2)));
+}
 
 // EllipticParaboloid
 EllipticParaboloid::EllipticParaboloid(Material mat, double x, double y, double z, double a) : EllipticParaboloid(mat, x, y, z, a, a) {}

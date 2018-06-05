@@ -14,11 +14,11 @@
 // Constants
 #define PI 3.14159265358979323846
 // Parameters
-#define RAY_STEP_SIZE 0.2
-#define MAX_RAY_STEPS 300
-#define MAX_RAY_DEPTH 10
-#define RAY_TOL 1e-8
-#define MAX_ITER 10
+#define RAY_STEP_SIZE 0.1
+#define MAX_RAY_STEPS 1200
+#define MAX_RAY_DEPTH 40
+#define RAY_TOL 1e-12
+#define MAX_ITER 20
 // Macros
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
@@ -41,6 +41,7 @@ public:
 	~RayTracer();
 	Vect **render();
 	void setCamPos(double x, double y, double z);
+	void setCamDir(double x, double y, double z);
 };
 
 #endif

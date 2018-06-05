@@ -209,8 +209,7 @@ Vect RayTracer::traceShadow(Vect& origin, Vect& normal, int *signsPrev, int sign
 			double cosPhi = shadowRay.dir.dot(normal);
 			if (cosPhi < 0.0)
 				cosPhi = 0.0;
-			double minLum = 0.00; // TODO: Make this a material attribute?
-			Vect currentIllum = lights.at(j)->brightness * (cosPhi * (1-minLum) + minLum);
+			Vect currentIllum = lights.at(j)->brightness * cosPhi;
 			illum.addBalanced(currentIllum); // TODO: Fix
 		}
 	}
@@ -238,4 +237,11 @@ void RayTracer::setCamPos(double x, double y, double z) {
 	cam.pos.x = x;
 	cam.pos.y = y;
 	cam.pos.z = z;
+}
+// Sets camera direction towards the given point
+void RayTracer::setCamDir(double x, double y, double z) {
+	Vect pt = Vect(x, y, z);
+	Vect dir = pt - cam.pos;
+	if (dir.length() > 0)
+		cam.dir = dir.normalize();
 }

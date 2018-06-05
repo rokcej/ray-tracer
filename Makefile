@@ -43,6 +43,6 @@ clean:
 	@echo "Cleaning..."
 	@rm -f $(OBJS) $(EXEC)
 
-# Clean, compile, run
+# Clean, compile, run (for development)
 .PHONY: dev
 dev: clean all run

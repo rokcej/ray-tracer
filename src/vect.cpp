@@ -31,9 +31,9 @@ double Vect::dot(Vect& v) {
 }
 // Add the vector so that each component doesn't exceed 1
 void Vect::addBalanced(Vect& v) {
-	x += 0.8*(1.0 - x) * v.x;
-	y += 0.8*(1.0 - y) * v.y;
-	z += 0.8*(1.0 - z) * v.z;
+	x += (1.0 - x) * v.x;
+	y += (1.0 - y) * v.y;
+	z += (1.0 - z) * v.z;
 }
 
 // Overload operators

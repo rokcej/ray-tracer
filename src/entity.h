@@ -85,6 +85,17 @@ public:
 	double dfy(Vect& pt);
 	double dfz(Vect& pt);
 };
+class TorusY : public Torus {
+private:
+protected:
+public:
+	TorusY(Material mat, double x, double y, double z, double R, double r);
+
+	double f(Vect& pt) override;
+	double dfx(Vect& pt) override;
+	double dfy(Vect& pt) override;
+	double dfz(Vect& pt) override;
+};
 
 class EllipticParaboloid : public Object {
 private:
