@@ -13,12 +13,6 @@
 
 // Constants
 #define PI 3.14159265358979323846
-// Parameters
-#define RAY_STEP_SIZE 0.1
-#define MAX_RAY_STEPS 1200
-#define MAX_RAY_DEPTH 40
-#define RAY_TOL 1e-12
-#define MAX_ITER 20
 // Macros
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
@@ -26,8 +20,14 @@
 
 class RayTracer {
 private:
-	Camera cam;
 	int samples;
+	double rayStepSize;
+	int maxRaySteps;
+	int maxRayDepth;
+	double rayTol;
+	int maxIter;
+
+	Camera cam;
 	std::vector<Object*> objs;
 	std::vector<Light*> lights;
 	Vect **pixels;
@@ -37,11 +37,13 @@ private:
 	Vect traceShadow(Vect& origin, Vect& normal, int *signsPrev, int signPrev);
 	double newton(Object* obj, Ray& ray, double t, double tol, int max_iter);
 public:
-	RayTracer(int width, int height, int fov, int samples, std::vector<Object*>& objs, std::vector<Light*>& lights);
+	RayTracer(int width, int height, int fov, int samples, double rayStepSize, int maxRaySteps, int maxRayDepth, double rayTol, int maxIter);
 	~RayTracer();
 	Vect **render();
 	void setCamPos(double x, double y, double z);
 	void setCamDir(double x, double y, double z);
+	void addObject(Object* obj);
+	void addLight(Light* light);
 };
 
 #endif

@@ -1,9 +1,14 @@
 #include "ray_tracer.h"
 
 // Constructor
-RayTracer::RayTracer(int width, int height, int fov, int samples, std::vector<Object*>& objs, std::vector<Light*>& lights) {
+RayTracer::RayTracer(int width, int height, int fov, int samples, double rayStepSize, int maxRaySteps, int maxRayDepth, double rayTol, int maxIter) {
 	this->cam = Camera(width, height, fov);
 	this->samples = samples;
+	this->rayStepSize = rayStepSize;
+	this->maxRaySteps = maxRaySteps;
+	this->maxRayDepth = maxRayDepth;
+	this->rayTol = rayTol;
+	this->maxIter = maxIter;
 	this->objs = objs;
 	this->lights = lights;
 	this->pixels = new Vect*[height];
@@ -12,6 +17,13 @@ RayTracer::RayTracer(int width, int height, int fov, int samples, std::vector<Ob
 }
 // Destructor
 RayTracer::~RayTracer() {
+	// Delete objects
+	for (int i = 0; i < objs.size(); ++i)
+		delete objs.at(i);
+	// Delete lights
+	for (int i = 0; i < lights.size(); ++i)
+		delete lights.at(i);
+	// Delete image array
 	for (int i = 0; i < cam.height; i++)
 		delete[] this->pixels[i];
 	delete[] this->pixels;
@@ -23,26 +35,21 @@ Vect **RayTracer::render() {
 	double span = 2.0 * tan(PI * cam.fov / 360.0);
 	double ratio = span / MAX(cam.width, cam.height);
 	double sampleSize = 1.0 / samples;
+	
 	// Create array of threads
 	std::thread threads[cam.height];
+
 	// Start timer
 	time_t start = time(NULL);
 
 	// Create thread for each row
-	for (int row = 0; row < cam.height; ++row) { // Screen height resolution
+	for (int row = 0; row < cam.height; ++row) // Screen height resolution
 		threads[row] = std::thread(renderRow, this, row, ratio, sampleSize);
-	}
-	// Wait for each thread to finish
-	for (int row = 0; row < cam.height; ++row) {
-		// Print progress
-		printf("\rRendering: %d\%%", 100*row/cam.height); // Print progress
-		fflush(stdout);
-		// Join thread
+	// Wait for each thread to finish and join it
+	for (int row = 0; row < cam.height; ++row)
 		threads[row].join();
-	}
 
 	// Print results
-	printf("\rRendering: 100%%\n");
 	printf("Frame render time: %lds\n", time(NULL) - start);
 
 	return pixels;
@@ -75,7 +82,7 @@ void RayTracer::renderRow(RayTracer *rt, int row, double ratio, double sampleSiz
 Vect RayTracer::trace(Ray& ray, int depth, int currentSteps, int *signsPrev) {
 	Vect color = Vect(0.0, 0.0, 0.0); // Default color
 	// Base case
-	if (depth > MAX_RAY_DEPTH)
+	if (depth > maxRayDepth)
 		return color;
 
 	// Get function signs at the origin unless already given
@@ -88,8 +95,8 @@ Vect RayTracer::trace(Ray& ray, int depth, int currentSteps, int *signsPrev) {
 	}
 
 	double t = 0.0;
-	for (int step = currentSteps + 1; step < MAX_RAY_STEPS; ++step) {
-		t += RAY_STEP_SIZE;
+	for (int step = currentSteps + 1; step < maxRaySteps; ++step) {
+		t += rayStepSize;
 		Vect point = ray * t;
 		// If multiple collisions, get the closest one
 		int iObj = -1;
@@ -97,8 +104,8 @@ Vect RayTracer::trace(Ray& ray, int depth, int currentSteps, int *signsPrev) {
 			int sign = objs.at(i)->f(point) >= 0;
 			if (sign != signs[i]) {
 				// Calculate collision with object
-				double t0 = t - 0.5 * RAY_STEP_SIZE;
-				double tn = newton(objs.at(i), ray, t0, RAY_TOL, MAX_ITER);
+				double t0 = t - 0.5 * rayStepSize;
+				double tn = newton(objs.at(i), ray, t0, rayTol, maxIter);
 				if (iObj == -1 || tn < t) {
 					iObj = i;
 					t = tn;
@@ -181,7 +188,7 @@ Vect RayTracer::traceShadow(Vect& origin, Vect& normal, int *signsPrev, int sign
 	for (int i = 0; i < objs.size(); ++i)
 			signs[i] = signsPrev[i];
 
-	Vect illum = Vect(0.1, 0.1, 0.1); // Default illumination
+	Vect illum = Vect(0.0); // Default illumination
 	for (int j = 0; j < lights.size(); ++j) {
 		Vect shadowRayDir = lights.at(j)->pos - origin;
 		double tMax = shadowRayDir.length();
@@ -191,7 +198,7 @@ Vect RayTracer::traceShadow(Vect& origin, Vect& normal, int *signsPrev, int sign
 		double t = 0.0;
 		double intensity = 1.0;
 		while (t < tMax) {
-			t += RAY_STEP_SIZE;
+			t += rayStepSize;
 			if (t > tMax) // Last point should be on the light itself
 				t = tMax;
 			Vect point = shadowRay * t;
@@ -217,9 +224,9 @@ Vect RayTracer::traceShadow(Vect& origin, Vect& normal, int *signsPrev, int sign
 }
 
 // Finds the intersetion of the ray with the object using Newton's method
-double RayTracer::newton(Object* obj, Ray& ray, double t, double tol, int max_iter) {
+double RayTracer::newton(Object* obj, Ray& ray, double t, double tol, int maxIter) {
 	double t0 = t;
-	for (int i = 0; i < max_iter; ++i) {
+	for (int i = 0; i < maxIter; ++i) {
 		Vect point = ray * t0;
 		double g = obj->f(point); // We want to find the zero of this function with regard to t
 		//double dg = ray.dir.x * obj->dfx(point) + ray.dir.y * obj->dfy(point) + ray.dir.z * obj->dfz(point);
@@ -241,7 +248,17 @@ void RayTracer::setCamPos(double x, double y, double z) {
 // Sets camera direction towards the given point
 void RayTracer::setCamDir(double x, double y, double z) {
 	Vect pt = Vect(x, y, z);
-	Vect dir = pt - cam.pos;
-	if (dir.length() > 0)
-		cam.dir = dir.normalize();
+	if (cam.pos.equals(pt))
+		return;
+	Vect dir = (pt - cam.pos).normalize();
+	cam.dir = dir;
+}
+
+// Add an object to the scene
+void RayTracer::addObject(Object* obj) {
+	this->objs.push_back(obj);
+}
+// Add a light to the scene
+void RayTracer::addLight(Light* light) {
+	this->lights.push_back(light);
 }

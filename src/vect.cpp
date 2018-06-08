@@ -35,6 +35,10 @@ void Vect::addBalanced(Vect& v) {
 	y += (1.0 - y) * v.y;
 	z += (1.0 - z) * v.z;
 }
+// Check if vectors are equal
+int Vect::equals(Vect& v) {
+	return x == v.x && y == v.y && z == v.z;
+}
 
 // Overload operators
 Vect& Vect::operator+=(const Vect& v) { x += v.x; y += v.y; z += v.z; return *this; }

@@ -2,7 +2,7 @@
 GXX=g++
 CPPFLAGS=-std=c++11
 LDFLAGS=
-LDLIBS=-lSDL2 -lm -lpthread
+LDLIBS=-lm -lpthread
 
 # Parameters
 EXECUTABLE=main

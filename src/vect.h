@@ -19,6 +19,7 @@ public:
 	double length();
 	double dot(Vect& v);
 	void addBalanced(Vect& v);
+	int equals(Vect& v);
 
 	Vect& operator+=(const Vect& v);
 	Vect& operator-=(const Vect& v);
