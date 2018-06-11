@@ -17,5 +17,5 @@ Make sure to run the following commands in the main directory of the repository.
 	```
 
 ## Examples
-![Render example](docs/example.bmp "Render example")
+![Render example](docs/example.bmp "Render example")  
 You can check out more rendered images [here](https://imgur.com/a/QpEdjfb "Render examples").
