@@ -1,5 +1,5 @@
 # Ray tracer
-## Installing libraries
+## Installing prerequisites
 * Installing Make and GCC:
 	```bash
 	sudo apt-get install build-essential
@@ -16,6 +16,6 @@ Make sure to run the following commands in the main directory of the repository.
 	build/main
 	```
 
-## Example
-Here's an example of what a rendered image looks like:  
+## Examples
 ![Render example](docs/example.bmp "Render example")
+You can check out more rendered images [here](https://imgur.com/a/QpEdjfb "Render examples").
