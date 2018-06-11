@@ -23,11 +23,11 @@ public:
 	Material mat;
 	Object(Material mat, double x, double y, double z);
 
-	virtual double f(Vect& pt) = 0; // { return 0.0; }
-	virtual double dfx(Vect& pt) = 0;
-	virtual double dfy(Vect& pt) = 0;
-	virtual double dfz(Vect& pt) = 0;
-	Vect grad(Vect& pt);
+	virtual double f(Vect& pt) = 0; // Object function
+	virtual double dfx(Vect& pt) = 0; // Partial derivative of x
+	virtual double dfy(Vect& pt) = 0; // Partial derivative of y
+	virtual double dfz(Vect& pt) = 0; // Partial derivative of z
+	Vect grad(Vect& pt); // Gradient
 };
 
 
@@ -62,14 +62,8 @@ public:
 class Sphere : public Ellipsoid {
 private:
 protected:
-	//double r;
 public:
 	Sphere(Material mat, double x, double y, double z, double r);
-
-	//double f(Vect& pt);
-	//double dfx(Vect& pt);
-	//double dfy(Vect& pt);
-	//double dfz(Vect& pt);
 };
 
 class Torus : public Object {
@@ -105,6 +99,50 @@ protected:
 public:
 	EllipticParaboloid(Material mat, double x, double y, double z, double a);
 	EllipticParaboloid(Material mat, double x, double y, double z, double a, double b);
+
+	double f(Vect& pt);
+	double dfx(Vect& pt);
+	double dfy(Vect& pt);
+	double dfz(Vect& pt);
+};
+
+class Heart : public Object {
+private:
+protected:
+public:
+	Heart(Material mat, double x, double y, double z);
+
+	double f(Vect& pt);
+	double dfx(Vect& pt);
+	double dfy(Vect& pt);
+	double dfz(Vect& pt);
+};
+
+class Liquid : public Object {
+private:
+protected:
+	double a;
+	double b;
+    double c;
+public:
+    Liquid(Material mat, double x, double y, double z, double a);	
+    Liquid(Material mat, double x, double y, double z, double a, double b, double c);
+
+	double f(Vect& pt);
+	double dfx(Vect& pt);
+	double dfy(Vect& pt);
+	double dfz(Vect& pt);
+};
+
+class Vibration : public Object {
+private:
+protected:
+	double a;
+	double b;
+    double c;
+public:
+    Vibration(Material mat, double x, double y, double z, double a);	
+    Vibration(Material mat, double x, double y, double z, double a, double b, double c);
 
 	double f(Vect& pt);
 	double dfx(Vect& pt);

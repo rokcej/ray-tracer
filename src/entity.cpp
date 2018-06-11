@@ -109,14 +109,85 @@ EllipticParaboloid::EllipticParaboloid(Material mat, double x, double y, double 
 	this->b = b;
 }
 double EllipticParaboloid::f(Vect& pt) {
-	return pow((pt.x-pos.x) / a, 2) + pow((pt.y-pos.y) / b, 2) - (pt.z-pos.z);
+	return pow((pt.x-pos.x) / a, 2) + pow((pt.z-pos.z) / b, 2) - (pt.y-pos.y);
 }
 double EllipticParaboloid::dfx(Vect& pt) {
 	return 2.0 / (a*a) * (pt.x-pos.x);
 }
 double EllipticParaboloid::dfy(Vect& pt) {
-	return 2.0 / (b*b) * (pt.z-pos.z);
+	return -1.0;
 }
 double EllipticParaboloid::dfz(Vect& pt) {
-	return -1.0;
+	return 2.0 / (b*b) * (pt.z-pos.z);
+}
+
+// Heart
+Heart::Heart(Material mat, double x, double y, double z) : Object(mat, x, y, z) {}
+double Heart::f(Vect& pt) {
+	double x = pt.x - pos.x;
+	double y = pt.y - pos.y;
+	double z = pt.z - pos.z;
+	return pow(x*x + 2.25*z*z + y*y - 1, 3) - x*x*y*y*y - 0.1125*z*z*y*y*y;
+}
+double Heart::dfx(Vect& pt) {
+	double x = pt.x - pos.x;
+	double y = pt.y - pos.y;
+	double z = pt.z - pos.z;
+	return 6.0 * x * pow(x*x + 2.25*z*z + y*y - 1, 2) - 2*x*y*y*y;
+}
+double Heart::dfy(Vect& pt) {
+	double x = pt.x - pos.x;
+	double y = pt.y - pos.y;
+	double z = pt.z - pos.z;
+	return 6.0 * y * pow(x*x + 2.25*z*z + y*y - 1, 2) - 3*x*x*y*y - 0.3375*z*z*y*y;
+}
+double Heart::dfz(Vect& pt) {
+	double x = pt.x - pos.x;
+	double y = pt.y - pos.y;
+	double z = pt.z - pos.z;
+	return 13.5 * z * pow(x*x + 2.25*z*z + y*y - 1, 2) - 0.225*z*y*y*y;
+}
+
+// Liquid
+Liquid::Liquid(Material mat, double x, double y, double z, double a) : Liquid(mat, x, y, z, a, a, a) {}
+Liquid::Liquid(Material mat, double x, double y, double z, double a, double b, double c) : Object(mat, x, y, z) {
+	this->a = a;
+	this->b = b;
+	this->c = c;
+}
+double Liquid::f(Vect& pt) {	
+	return (pt.z - pos.z) - (a * pow((pt.x - pos.x), 3) + b * (pt.x - pos.x) + c * pow((pt.y - pos.y), 2));
+}
+double Liquid::dfx(Vect& pt) {	
+	return -(3 * a * pow((pt.x - pos.x), 2) + b);
+}
+double Liquid::dfy(Vect& pt) {	
+	return -2 * c * (pt.y - pos.y);	
+}
+double Liquid::dfz(Vect& pt) {	
+	return 1.0;
+}
+
+// Vibration
+Vibration::Vibration(Material mat, double x, double y, double z, double a) : Vibration(mat, x, y, z, a, a, a) {}
+Vibration::Vibration(Material mat, double x, double y, double z, double a, double b, double c) : Object(mat, x, y, z) {
+	this->a = a;
+	this->b = b;
+	this->c = c;
+}
+double Vibration::f(Vect& pt) {
+	return (pt.z - pos.z) - pow(sin(sqrt((pt.x - pos.x) * (pt.x - pos.x) + (pt.y - pos.y) * (pt.y - pos.y))), 2);
+}
+double Vibration::dfx(Vect& pt) {
+	double tmp = sqrt((pt.x - pos.x) * (pt.x - pos.x) + (pt.y - pos.y) * (pt.y - pos.y));
+	
+	return -4 * sin(tmp) * cos(tmp) * (pt.x - pos.x)/ tmp;
+}
+double Vibration::dfy(Vect& pt) {
+	double tmp = sqrt((pt.x - pos.x) * (pt.x - pos.x) + (pt.y - pos.y) * (pt.y - pos.y));
+	
+	return -4 * sin(tmp) * cos(tmp) * (pt.y - pos.y) / tmp;
+}
+double Vibration::dfz(Vect& pt) {
+	return 1.0;
 }

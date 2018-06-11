@@ -1,9 +1,10 @@
 #include "ray_tracer.h"
 
 // Constructor
-RayTracer::RayTracer(int width, int height, int fov, int samples, double rayStepSize, int maxRaySteps, int maxRayDepth, double rayTol, int maxIter) {
+RayTracer::RayTracer(int width, int height, int fov, int numSamples, int numThreads, double rayStepSize, int maxRaySteps, int maxRayDepth, double rayTol, int maxIter) {
 	this->cam = Camera(width, height, fov);
-	this->samples = samples;
+	this->numSamples = numSamples;
+	this->numThreads = numThreads;
 	this->rayStepSize = rayStepSize;
 	this->maxRaySteps = maxRaySteps;
 	this->maxRayDepth = maxRayDepth;
@@ -34,20 +35,21 @@ Vect **RayTracer::render() {
 	// Calculate constants
 	double span = 2.0 * tan(PI * cam.fov / 360.0);
 	double ratio = span / MAX(cam.width, cam.height);
-	double sampleSize = 1.0 / samples;
+	double sampleSize = 1.0 / numSamples;
 	
 	// Create array of threads
-	std::thread threads[cam.height];
+	std::thread threads[numThreads];
+	int rowsPerThread = cam.height / numThreads;
 
 	// Start timer
 	time_t start = time(NULL);
 
-	// Create thread for each row
-	for (int row = 0; row < cam.height; ++row) // Screen height resolution
-		threads[row] = std::thread(renderRow, this, row, ratio, sampleSize);
+	// Create threads
+	for (int i = 0; i < numThreads; ++i) // Screen height resolution
+		threads[i] = std::thread(renderThread, this, i, rowsPerThread, ratio, sampleSize);
 	// Wait for each thread to finish and join it
-	for (int row = 0; row < cam.height; ++row)
-		threads[row].join();
+	for (int i = 0; i < numThreads; ++i)
+		threads[i].join();
 
 	// Print results
 	printf("Frame render time: %lds\n", time(NULL) - start);
@@ -55,25 +57,35 @@ Vect **RayTracer::render() {
 	return pixels;
 }
 
-// Renders a row of pixels. The function is static because a non-static function can't be passed
-// to a thread. To bypass this, it takes the object as an argument
-void RayTracer::renderRow(RayTracer *rt, int row, double ratio, double sampleSize) {
-	for (int col = 0; col < rt->cam.width; ++col) { // Screen width resolution
-		Vect color = Vect(0.0, 0.0, 0.0);
-		for (int dy = 0; dy < rt->samples; ++dy) { // Pixel height samples
-			for (int dx = 0; dx < rt->samples; ++dx) { // Pixel width samples
-				double x = ratio * ((col + (0.5+dx) * sampleSize) - rt->cam.width*0.5);
-				double y = ratio * (-(row + (0.5+dy) * sampleSize) + rt->cam.height*0.5);
-				// Get ray through the selected sample of the selected pixel
-				Vect rayDir = rt->cam.vx*x + rt->cam.vy*y + rt->cam.dir;
-				rayDir.normalize();
-				Ray ray = Ray(rt->cam.pos, rayDir);
-				// Trace ray
-				Vect sampleColor = rt->trace(ray, 0, 0, NULL);
-				color += sampleColor;
+// Renders multiple rows of pixels in each thread. The function is static because a non-static function
+// can't be passed to a thread. To bypass this, it takes the object as an argument
+void RayTracer::renderThread(RayTracer *rt, int index, int rowsPerThread, double ratio, double sampleSize) {
+	// Calculate which rows to render in this thread
+	int minRow = index * rowsPerThread;
+	int maxRow;
+	if (index <= rt->numThreads - 1)
+		maxRow = minRow + rowsPerThread - 1;
+	else // In case height isn't divisible by number of threads
+		maxRow = rt->cam.height - 1;
+	// Render selected rows
+	for (int row = minRow; row <= maxRow; ++row) {
+		for (int col = 0; col < rt->cam.width; ++col) { // Screen width resolution
+			Vect color = Vect(0.0, 0.0, 0.0);
+			for (int dy = 0; dy < rt->numSamples; ++dy) { // Pixel height samples
+				for (int dx = 0; dx < rt->numSamples; ++dx) { // Pixel width samples
+					double x = ratio * ((col + (0.5+dx) * sampleSize) - rt->cam.width*0.5);
+					double y = ratio * (-(row + (0.5+dy) * sampleSize) + rt->cam.height*0.5);
+					// Get ray through the selected sample of the selected pixel
+					Vect rayDir = rt->cam.vx*x + rt->cam.vy*y + rt->cam.dir;
+					rayDir.normalize();
+					Ray ray = Ray(rt->cam.pos, rayDir);
+					// Trace ray
+					Vect sampleColor = rt->trace(ray, 0, 0, NULL);
+					color += sampleColor;
+				}
 			}
+			rt->pixels[row][col] = color / (rt->numSamples * rt->numSamples); // Store average color from all samples
 		}
-		rt->pixels[row][col] = color / (rt->samples * rt->samples); // Store average color from all samples
 	}
 }
 
@@ -124,7 +136,7 @@ Vect RayTracer::trace(Ray& ray, int depth, int currentSteps, int *signsPrev) {
 
 			// Diffuse
 			if (reflection < 1.0) {
-				Vect light = traceShadow(point, normal, signs, sign);
+				Vect light = traceShadow(point, normal, signs);
 				Vect diffuseColor = light * objs.at(iObj)->mat.color;
 				// Set diffuse color
 				color = diffuseColor;
@@ -182,11 +194,11 @@ Vect RayTracer::trace(Ray& ray, int depth, int currentSteps, int *signsPrev) {
 }
 
 // Traces shadow rays from origin point to all light sources and returns the total illumination
-Vect RayTracer::traceShadow(Vect& origin, Vect& normal, int *signsPrev, int signPrev) {
+Vect RayTracer::traceShadow(Vect& origin, Vect& normal, int *signsPrev) {
 	// Copy previous signs
 	int signs[objs.size()];
 	for (int i = 0; i < objs.size(); ++i)
-			signs[i] = signsPrev[i];
+		signs[i] = signsPrev[i];
 
 	Vect illum = Vect(0.0); // Default illumination
 	for (int j = 0; j < lights.size(); ++j) {
@@ -204,19 +216,21 @@ Vect RayTracer::traceShadow(Vect& origin, Vect& normal, int *signsPrev, int sign
 			Vect point = shadowRay * t;
 			for (int i = 0; i < objs.size(); ++i) {
 				int sign = objs.at(i)->f(point) >= 0;
-				if (sign != signs[i]) {
+				if (sign != signs[i]) { // Shadow ray collision with object
 					intensity *= objs.at(i)->mat.transparency;
-					break;
+					if (intensity == 0)
+						break;
+					signs[i] = sign; // Why can't this line be before break?
 				}
 			}
 			if (intensity == 0) // If light not visible anymore
 				break;
 		}
-		if (intensity > 0.0) {
+		if (intensity > 0.0) { // Calculate light angle and apply intensity
 			double cosPhi = shadowRay.dir.dot(normal);
 			if (cosPhi < 0.0)
 				cosPhi = 0.0;
-			Vect currentIllum = lights.at(j)->brightness * cosPhi;
+			Vect currentIllum = lights.at(j)->brightness * cosPhi * intensity;
 			illum.addBalanced(currentIllum); // TODO: Fix
 		}
 	}

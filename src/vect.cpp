@@ -14,7 +14,7 @@ Vect Vect::copy() {
 // Normalize vector
 Vect& Vect::normalize() {
 	double len = length();
-	if (len > 0) {
+	if (len > 0.0) {
 		x /= len;
 		y /= len;
 		z /= len;

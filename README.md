@@ -15,3 +15,7 @@ Make sure to run the following commands in the main directory of the repository.
 	```bash
 	build/main
 	```
+
+## Example
+Here's an example of what a rendered image looks like:  
+![Render example](docs/example.bmp "Render example")
