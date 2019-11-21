@@ -47,12 +47,16 @@ Vect **RayTracer::render() {
 	// Create threads
 	for (int i = 0; i < numThreads; ++i) // Screen height resolution
 		threads[i] = std::thread(renderThread, this, i, rowsPerThread, ratio, sampleSize);
+	printf("Rendering...\n");
 	// Wait for each thread to finish and join it
 	for (int i = 0; i < numThreads; ++i)
 		threads[i].join();
 
 	// Print results
-	printf("Frame render time: %lds\n", time(NULL) - start);
+	time_t seconds = time(NULL) - start;
+	time_t minutes = seconds / 60L; seconds %= 60L;
+	time_t hours   = minutes / 60L; minutes %= 60L;
+	printf("Render time: %02ld:%02ld:%02lds\n", hours, minutes, seconds);
 
 	return pixels;
 }

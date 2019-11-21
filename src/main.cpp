@@ -1,7 +1,7 @@
 #include "ray_tracer.h"
 #include "bitmap.h"
 
-// Parameters
+/// Parameters
 // Basic
 #define FILE_NAME "render.bmp" // Name of the file to save the image in
 #define WIDTH 640 // Image x resolution

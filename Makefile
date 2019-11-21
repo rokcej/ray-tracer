@@ -5,7 +5,7 @@ LDFLAGS=
 LDLIBS=-lm -lpthread
 
 # Parameters
-EXECUTABLE=main
+EXECUTABLE=raytracer
 SOURCEDIR=src
 BUILDDIR=build
 
