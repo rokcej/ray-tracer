@@ -1,13 +1,13 @@
 # Ray tracer
 
 A program for drawing 3D mathematical functions using the ray tracing (ray marching) method. Written in C++.  
-Created as a project for my Mathematical Modelling course. You can find the report in `docs\report.pdf`.
+Created as a project for my Mathematical Modelling course. You can find the report in `docs/report.pdf`.
 
 ## Installing prerequisites
 
-This program has no dependencies. You only need `GCC` and `make` to compile it.
+This program has no dependencies. You only need GCC and Make to compile it.
 
-* Installing `GCC` and `make`:
+* Installing GCC and Make:
 	```bash
 	sudo apt-get install build-essential
 	```
