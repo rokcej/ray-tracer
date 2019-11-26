@@ -1,7 +1,7 @@
 # Ray tracer
 
 A program for drawing 3D mathematical functions using the ray tracing (ray marching) method. Written in C++.  
-Created as a project for my Mathematical Modelling course.
+Created as a project for my Mathematical Modelling course. You can find the report in `docs\report.pdf`.
 
 ## Installing prerequisites
 
